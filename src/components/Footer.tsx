@@ -8,7 +8,7 @@ import { PrimaryButton, SecondaryButton } from "./utils";
 
 const Footer: React.FC = () => {
     // Contexts
-    const { hideDatepicker, period, changeDatepickerValue, configs, classNames } =
+    const { hideDatepicker, period, viewMode, changeDatepickerValue, configs, classNames } =
         useContext(DatepickerContext);
 
     // Functions
@@ -32,15 +32,37 @@ const Footer: React.FC = () => {
                 </SecondaryButton>
                 <PrimaryButton
                     onClick={() => {
-                        if (period.start && period.end) {
+                        if (viewMode === "time") {
                             changeDatepickerValue({
-                                startDate: dayjs(period.start).format(DATE_FORMAT),
-                                endDate: dayjs(period.end).format(DATE_FORMAT)
+                                startDate: null,
+                                endDate: null,
+                                time: period.time
                             });
                             hideDatepicker();
                         }
+                        else if (viewMode === "datetime") {
+                            if ((period.start && period.time)) {
+                                changeDatepickerValue({
+                                    startDate: dayjs(period.start).format(DATE_FORMAT),
+                                    endDate: dayjs(period.start).format(DATE_FORMAT),
+                                    time: period.time
+                                });
+                                hideDatepicker();
+                            }
+                        }
+                        else {
+                            if ((period.start && period.end)) {
+                                changeDatepickerValue({
+                                    startDate: dayjs(period.start).format(DATE_FORMAT),
+                                    endDate: dayjs(period.end).format(DATE_FORMAT),
+                                    time: period.time
+                                });
+                                hideDatepicker();
+                            }
+                        }
+
                     }}
-                    disabled={!(period.start && period.end)}
+                    disabled={!(period.start && period.end) && !period.time}
                 >
                     <>{configs?.footer?.apply ? configs.footer.apply : "Apply"}</>
                 </PrimaryButton>

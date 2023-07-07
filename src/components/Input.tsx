@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import React, { useCallback, useContext, useEffect, useRef } from "react";
+import React, {useCallback, useContext, useEffect, useRef, useState} from "react";
 
 import { BORDER_COLOR, DATE_FORMAT, RING_COLOR } from "../constants";
 import DatepickerContext from "../contexts/DatepickerContext";
@@ -9,6 +9,7 @@ import ToggleButton from "./ToggleButton";
 
 type Props = {
     setContextRef?: (ref: React.RefObject<HTMLInputElement>) => void;
+    timeValue?: string | null;
 };
 
 const Input: React.FC<Props> = (e: Props) => {
@@ -42,6 +43,7 @@ const Input: React.FC<Props> = (e: Props) => {
     // UseRefs
     const buttonRef = useRef<HTMLButtonElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [time, setTime] = useState("");
 
     // Functions
     const getClassName = useCallback(() => {
@@ -104,7 +106,8 @@ const Input: React.FC<Props> = (e: Props) => {
                 changeDatepickerValue(
                     {
                         startDate: dates[0],
-                        endDate: dates[1] || dates[0]
+                        endDate: dates[1] || dates[0],
+                        time: time
                     },
                     e.target
                 );
@@ -114,7 +117,7 @@ const Input: React.FC<Props> = (e: Props) => {
 
             changeInputText(e.target.value);
         },
-        [asSingle, displayFormat, separator, changeDatepickerValue, changeDayHover, changeInputText]
+        [asSingle, displayFormat, separator, changeDatepickerValue, changeDayHover, changeInputText, time]
     );
 
     const handleInputKeyDown = useCallback(
@@ -167,7 +170,16 @@ const Input: React.FC<Props> = (e: Props) => {
         if (inputRef && e.setContextRef && typeof e.setContextRef === "function") {
             e.setContextRef(inputRef);
         }
-    }, [e, inputRef]);
+    }, [e.setContextRef, inputRef]);
+
+    // Time Change Effect
+    useEffect(() => {
+        console.log({time: e.timeValue})
+        if (e.timeValue) {
+            setTime(e.timeValue);
+        }
+
+    }, [e.timeValue]);
 
     useEffect(() => {
         const button = buttonRef?.current;
@@ -187,7 +199,8 @@ const Input: React.FC<Props> = (e: Props) => {
                         changeDatepickerValue(
                             {
                                 startDate: null,
-                                endDate: null
+                                endDate: null,
+                                time: null
                             },
                             input
                         );

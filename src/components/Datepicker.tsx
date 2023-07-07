@@ -12,6 +12,7 @@ import useOnClickOutside from "../hooks";
 import { Period, DatepickerType, ColorKeys } from "../types";
 
 import { Arrow, VerticalDash } from "./utils";
+import TimeKeeper from "./Time";
 
 const Datepicker: React.FC<DatepickerType> = ({
     primaryColor = "blue",
@@ -24,11 +25,13 @@ const Datepicker: React.FC<DatepickerType> = ({
     asSingle = false,
     placeholder = null,
     separator = "~",
+    viewMode = "date",
     startFrom = null,
     i18n = LANGUAGE,
     disabled = false,
     inputClassName = null,
     containerClassName = null,
+    popoverClassName = null,
     toggleClassName = null,
     toggleIcon = undefined,
     displayFormat = DATE_FORMAT,
@@ -41,7 +44,8 @@ const Datepicker: React.FC<DatepickerType> = ({
     inputName,
     startWeekOn = "sun",
     classNames = undefined,
-    popoverDirection = undefined
+    popoverDirection = undefined,
+    timeProps
 }) => {
     // Ref
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -53,9 +57,11 @@ const Datepicker: React.FC<DatepickerType> = ({
         startFrom && dayjs(startFrom).isValid() ? dayjs(startFrom) : dayjs()
     );
     const [secondDate, setSecondDate] = useState<dayjs.Dayjs>(nextMonth(firstDate));
+    const [timeValue, setTimeValue] = useState<string | null>();
     const [period, setPeriod] = useState<Period>({
         start: null,
-        end: null
+        end: null,
+        time: null
     });
     const [dayHover, setDayHover] = useState<string | null>(null);
     const [inputText, setInputText] = useState<string>("");
@@ -185,33 +191,66 @@ const Datepicker: React.FC<DatepickerType> = ({
     }, []);
 
     useEffect(() => {
-        if (value && value.startDate && value.endDate) {
-            const startDate = dayjs(value.startDate);
-            const endDate = dayjs(value.endDate);
-            const validDate = startDate.isValid() && endDate.isValid();
-            const condition =
-                validDate && (startDate.isSame(endDate) || startDate.isBefore(endDate));
-            if (condition) {
-                setPeriod({
-                    start: formatDate(startDate),
-                    end: formatDate(endDate)
-                });
-                setInputText(
-                    `${formatDate(startDate, displayFormat)}${
-                        asSingle ? "" : ` ${separator} ${formatDate(endDate, displayFormat)}`
-                    }`
-                );
-            }
-        }
 
-        if (value && value.startDate === null && value.endDate === null) {
+        if (viewMode === "time" && timeValue) {
             setPeriod({
                 start: null,
-                end: null
+                end: null,
+                time: timeValue
+            });
+            setInputText(timeValue);
+        }
+        else if (viewMode ==="datetime") {
+            if (value && value.startDate && timeValue) {
+                const startDate = dayjs(value.startDate);
+                const validDate = startDate.isValid();
+                if (validDate) {
+                    setPeriod({
+                        start: formatDate(startDate),
+                        end: formatDate(startDate),
+                        time: timeValue
+                    });
+
+                    setInputText(
+                        `${formatDate(startDate, displayFormat)} ${timeValue}`
+                    );
+                }
+            }
+        }
+        else {
+
+            if (value && value.startDate && value.endDate) {
+                const startDate = dayjs(value.startDate);
+                const endDate = dayjs(value.endDate);
+                const validDate = startDate.isValid() && endDate.isValid();
+                const condition =
+                    validDate && (startDate.isSame(endDate) || startDate.isBefore(endDate));
+                if (condition) {
+                    setPeriod({
+                        start: formatDate(startDate),
+                        end: formatDate(endDate),
+                        time: timeValue!
+                    });
+
+                    setInputText(
+                        `${formatDate(startDate, displayFormat)}${
+                            asSingle ? "" : ` ${separator} ${formatDate(endDate, displayFormat)}`
+                        }`
+                    );
+
+                }
+            }
+
+        }
+        if (value && value.startDate === null && value.endDate === null && value.time === null) {
+            setPeriod({
+                start: null,
+                end: null,
+                time: null
             });
             setInputText("");
         }
-    }, [asSingle, value, displayFormat, separator]);
+    }, [asSingle, value, displayFormat, separator, timeValue]);
 
     useEffect(() => {
         if (startFrom && dayjs(startFrom).isValid()) {
@@ -247,6 +286,7 @@ const Datepicker: React.FC<DatepickerType> = ({
     const contextValues = useMemo(() => {
         return {
             asSingle,
+            viewMode,
             primaryColor: safePrimaryColor,
             configs,
             calendarContainer: calendarContainerRef,
@@ -268,6 +308,7 @@ const Datepicker: React.FC<DatepickerType> = ({
             disabled,
             inputClassName,
             containerClassName,
+            popoverClassName,
             toggleClassName,
             toggleIcon,
             readOnly,
@@ -284,8 +325,10 @@ const Datepicker: React.FC<DatepickerType> = ({
             input: inputRef,
             popoverDirection
         };
-    }, [
+    },
+        [
         asSingle,
+        viewMode,
         safePrimaryColor,
         configs,
         hideDatepicker,
@@ -301,6 +344,7 @@ const Datepicker: React.FC<DatepickerType> = ({
         disabled,
         inputClassName,
         containerClassName,
+        popoverClassName,
         toggleClassName,
         toggleIcon,
         readOnly,
@@ -327,10 +371,19 @@ const Datepicker: React.FC<DatepickerType> = ({
             : defaultContainerClassName;
     }, [containerClassName]);
 
+    const popoverClassNameOverload = useMemo(() => {
+        const popoverContainerClassName = "mt-2.5 shadow-sm border border-gray-300 px-1 py-0.5 bg-white rounded-lg";
+        return typeof popoverClassName === "function"
+            ? popoverClassName(popoverContainerClassName)
+            : typeof popoverClassName === "string" && popoverClassName !== ""
+            ? popoverClassName
+            : popoverContainerClassName;
+    }, [popoverClassName]);
+
     return (
         <DatepickerContext.Provider value={contextValues}>
             <div className={containerClassNameOverload} ref={containerRef}>
-                <Input setContextRef={setInputRef} />
+                <Input setContextRef={setInputRef} timeValue={timeValue} />
 
                 <div
                     className="transition-all ease-out duration-300 absolute z-10 mt-[1px] text-sm lg:text-xs 2xl:text-sm translate-y-4 opacity-0 hidden"
@@ -338,7 +391,7 @@ const Datepicker: React.FC<DatepickerType> = ({
                 >
                     <Arrow ref={arrowRef} />
 
-                    <div className="mt-2.5 shadow-sm border border-gray-300 px-1 py-0.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 rounded-lg">
+                    <div className={popoverClassNameOverload}>
                         <div className="flex flex-col lg:flex-row py-2">
                             {showShortcuts && <Shortcuts />}
 
@@ -347,33 +400,88 @@ const Datepicker: React.FC<DatepickerType> = ({
                                     showShortcuts ? "md:pl-2" : "md:pl-1"
                                 } pr-2 lg:pr-1`}
                             >
-                                <Calendar
-                                    date={firstDate}
-                                    onClickPrevious={previousMonthFirst}
-                                    onClickNext={nextMonthFirst}
-                                    changeMonth={changeFirstMonth}
-                                    changeYear={changeFirstYear}
-                                    minDate={minDate}
-                                    maxDate={maxDate}
-                                />
-
-                                {useRange && (
+                                {viewMode === "time" ? <TimeKeeper
+                                        hour24Mode
+                                        onChange={newTime => {
+                                           newTime.isValid && setTimeValue(newTime.formatted24);
+                                            onChange({
+                                                startDate: null,
+                                                endDate: null,
+                                                time: newTime.formatted24
+                                            })
+                                        }}
+                                        onDoneClick={(newTime) => {
+                                         if (newTime.isValid) {
+                                             onChange({
+                                                 startDate: null,
+                                                 endDate: null,
+                                                 time: newTime.formatted24
+                                             })
+                                             hideDatepicker();
+                                         }
+                                        }}
+                                        {...timeProps} /> :
+                                viewMode === "datetime" ? (
                                     <>
+                                        <Calendar
+                                            date={firstDate}
+                                            onClickPrevious={previousMonthFirst}
+                                            onClickNext={nextMonthFirst}
+                                            changeMonth={changeFirstMonth}
+                                            changeYear={changeFirstYear}
+                                            minDate={minDate}
+                                            maxDate={maxDate}
+                                            timeValue={timeValue}
+                                        />
+
                                         <div className="flex items-center">
                                             <VerticalDash />
                                         </div>
 
-                                        <Calendar
-                                            date={secondDate}
-                                            onClickPrevious={previousMonthSecond}
-                                            onClickNext={nextMonthSecond}
-                                            changeMonth={changeSecondMonth}
-                                            changeYear={changeSecondYear}
-                                            minDate={minDate}
-                                            maxDate={maxDate}
+                                        <TimeKeeper
+                                            hour24Mode
+                                            onChange={newTime => {
+                                                newTime.isValid && setTimeValue(newTime.formatted24)
+                                            }}
+                                            {...timeProps}
                                         />
                                     </>
-                                )}
+                                ):
+                                    (
+                                        <>
+                                            <Calendar
+                                                date={firstDate}
+                                                onClickPrevious={previousMonthFirst}
+                                                onClickNext={nextMonthFirst}
+                                                changeMonth={changeFirstMonth}
+                                                changeYear={changeFirstYear}
+                                                minDate={minDate}
+                                                maxDate={maxDate}
+                                                timeValue={timeValue}
+                                            />
+
+                                            {useRange && (
+                                                <>
+                                                    <div className="flex items-center">
+                                                        <VerticalDash />
+                                                    </div>
+
+                                                    <Calendar
+                                                        date={secondDate}
+                                                        onClickPrevious={previousMonthSecond}
+                                                        onClickNext={nextMonthSecond}
+                                                        changeMonth={changeSecondMonth}
+                                                        changeYear={changeSecondYear}
+                                                        minDate={minDate}
+                                                        maxDate={maxDate}
+                                                        timeValue={timeValue}
+                                                    />
+                                                </>
+                                            )}
+                                        </>
+                                    )
+                                }
+
                             </div>
                         </div>
 

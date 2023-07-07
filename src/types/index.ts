@@ -1,10 +1,13 @@
 import React from "react";
 
 import { COLORS } from "../constants";
+import {TimeInput} from "../components/Time/helpers/types";
+import {Props as TimeProps} from "../components/Time/TimeKeeperContainer";
 
 export interface Period {
     start: string | null;
     end: string | null;
+    time: string | null;
 }
 
 interface CustomShortcuts {
@@ -40,6 +43,7 @@ export type DateType = string | null | Date;
 export type DateRangeType = {
     startDate: DateType;
     endDate: DateType;
+    time: TimeInput
 };
 
 export type DateValueType = DateRangeType | null;
@@ -58,8 +62,10 @@ export interface DatepickerType {
     value: DateValueType;
     onChange: (value: DateValueType, e?: HTMLInputElement | null | undefined) => void;
     useRange?: boolean;
+    viewMode?: "date" | "datetime" | "time";
     showFooter?: boolean;
     showShortcuts?: boolean;
+    timeProps?: TimeProps,
     configs?: Configs;
     asSingle?: boolean;
     placeholder?: string;
@@ -70,6 +76,7 @@ export interface DatepickerType {
     classNames?: ClassNamesTypeProp | undefined;
     containerClassName?: ((className: string) => string) | string | null;
     inputClassName?: ((className: string) => string) | string | null;
+    popoverClassName?: ((className: string) => string) | string | null;
     toggleClassName?: ((className: string) => string) | string | null;
     toggleIcon?: (open: boolean) => React.ReactNode;
     inputId?: string;

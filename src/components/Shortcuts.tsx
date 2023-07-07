@@ -40,13 +40,15 @@ const ItemTemplate = React.memo((props: ItemTemplateProps) => {
             if (period.start || period.end) {
                 changePeriod({
                     start: null,
-                    end: null
+                    end: null,
+                    time: null
                 });
             }
             changePeriod(item);
             changeDatepickerValue({
                 startDate: item.start,
-                endDate: item.end
+                endDate: item.end,
+                time: item.time
             });
             updateFirstDate(dayjs(item.start));
             hideDatepicker();

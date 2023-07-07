@@ -7,7 +7,8 @@ import Head from "next/head";
 export default function Playground() {
     const [value, setValue] = useState({
         startDate: null,
-        endDate: null
+        endDate: null,
+        time: null
     });
     const [primaryColor, setPrimaryColor] = useState("blue");
     const [useRange, setUseRange] = useState(true);
@@ -33,7 +34,6 @@ export default function Playground() {
 
     const handleChange = (value, e) => {
         setValue(value);
-        console.log(e);
         console.log("value", value);
     };
     return (
@@ -51,11 +51,15 @@ export default function Playground() {
             <div className="max-w-md mx-auto my-4">
                 <Datepicker
                     value={value}
+                    viewMode={'date'}
                     primaryColor={primaryColor}
                     onChange={handleChange}
                     useRange={useRange}
                     showFooter={showFooter}
                     showShortcuts={showShortcuts}
+                    timeProps={{
+                        switchToMinuteOnHourSelect: true
+                    }}
                     configs={{
                         shortcuts: {
                             today: "TText",

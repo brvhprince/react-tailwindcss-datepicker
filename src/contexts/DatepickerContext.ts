@@ -16,6 +16,7 @@ import {
 interface DatepickerStore {
     input?: React.RefObject<HTMLInputElement>;
     asSingle?: boolean;
+    viewMode?: "date" | "datetime" | "time";
     primaryColor: ColorKeys;
     configs?: Configs;
     calendarContainer: React.RefObject<HTMLDivElement> | null;
@@ -36,6 +37,7 @@ interface DatepickerStore {
     value: DateValueType;
     disabled?: boolean;
     inputClassName?: ((className: string) => string) | string | null;
+    popoverClassName?: ((className: string) => string) | string | null;
     containerClassName?: ((className: string) => string) | string | null;
     toggleClassName?: ((className: string) => string) | string | null;
     toggleIcon?: (open: boolean) => React.ReactNode;
@@ -58,7 +60,7 @@ const DatepickerContext = createContext<DatepickerStore>({
     configs: undefined,
     calendarContainer: null,
     arrowContainer: null,
-    period: { start: null, end: null },
+    period: { start: null, end: null, time: null },
     // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
     changePeriod: period => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -80,6 +82,7 @@ const DatepickerContext = createContext<DatepickerStore>({
     inputClassName: "",
     containerClassName: "",
     toggleClassName: "",
+    popoverClassName: "",
     readOnly: false,
     displayFormat: DATE_FORMAT,
     minDate: null,
@@ -92,7 +95,8 @@ const DatepickerContext = createContext<DatepickerStore>({
     toggleIcon: undefined,
     classNames: undefined,
     popoverDirection: undefined,
-    separator: "~"
+    separator: "~",
+    viewMode: "date"
 });
 
 export default DatepickerContext;

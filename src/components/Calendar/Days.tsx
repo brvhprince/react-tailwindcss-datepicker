@@ -262,7 +262,8 @@ const Days: React.FC<Props> = ({
                     if (!checkIfHoverPeriodContainsDisabledPeriod(hoverPeriod)) {
                         changePeriod({
                             start: null,
-                            end: period.start
+                            end: period.start,
+                            time: null
                         });
                     }
                 }
@@ -279,7 +280,8 @@ const Days: React.FC<Props> = ({
                     if (!checkIfHoverPeriodContainsDisabledPeriod(hoverPeriod)) {
                         changePeriod({
                             start: period.end,
-                            end: null
+                            end: null,
+                            time:null
                         });
                     }
                 }
